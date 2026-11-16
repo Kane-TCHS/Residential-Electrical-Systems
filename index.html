@@ -166,10 +166,8 @@ input[type=file]{font:inherit;margin-top:4px}
     <li>Good light, no shadows or glare.</li>
   </ul>
 
-  <label class="f" for="group">Group</label>
-  <select id="group"><option value="">Choose your group…</option></select>
-  <label class="f" for="names">Names</label>
-  <input type="text" id="names" placeholder="First Last, First Last">
+  <label class="f" for="group">Student group number</label>
+  <select id="group"><option value="">Choose your group number…</option></select>
   <label class="f" for="photo">Photo of your electrical plan</label>
   <input type="file" id="photo" accept="image/*">
   <div id="photoErr"></div>
@@ -183,7 +181,7 @@ input[type=file]{font:inherit;margin-top:4px}
 
 <section>
   <h2>6. Save Your Work</h2>
-  <p>Click <b>Save as PDF</b>. In the print window, set the destination to <b>Save as PDF</b>. Only your names, your sketch and your self-check will print, on one page. Add the PDF to your group's portfolio under Module 4.</p>
+  <p>Click <b>Save as PDF</b>. In the print window, set the destination to <b>Save as PDF</b>. Only your group number, your sketch and your self-check will print, on one page. Add the PDF to your group's portfolio under Module 4.</p>
   <div class="actions">
     <button class="btn" id="printBtn">Save as PDF</button>
     <button class="btn secondary" id="clearBtn">Clear my answers</button>
@@ -199,7 +197,7 @@ input[type=file]{font:inherit;margin-top:4px}
 <div id="printout">
   <div class="ph">
     <h1>Module 4 – Residential Electrical Systems</h1>
-    <div class="who"><b id="pGroup"></b><br><span id="pNames"></span></div>
+    <div class="who"><b id="pGroup"></b></div>
   </div>
   <div class="sk" id="pSketch"></div>
   <h3>Self-check</h3>
@@ -208,7 +206,7 @@ input[type=file]{font:inherit;margin-top:4px}
 
 <script>
 (function(){
-  var GROUPS=["Rivera","Thompson","Nguyen","Okafor","Brooks","Haddad","Ortiz","Walker","Patel","Johnson","Fischer","Baptiste","Castillo","Kim","Henderson"];
+  var GROUP_COUNT=15;
   var CHECKS=[
     "Every wall has its length written on it",
     "Outlets are no more than 12′ apart, and every wall 2′ or wider has one",
@@ -230,7 +228,7 @@ input[type=file]{font:inherit;margin-top:4px}
   var $=function(id){return document.getElementById(id)};
 
   var g=$("group");
-  GROUPS.forEach(function(f,i){var o=document.createElement("option");o.value=String(i+1);o.textContent="Group "+(i+1)+" – "+f;g.appendChild(o);});
+  for(var i=1;i<=GROUP_COUNT;i++){var o=document.createElement("option");o.value=String(i);o.textContent="Group "+i;g.appendChild(o);}
   var box=$("checks");
   CHECKS.forEach(function(t,i){var l=document.createElement("label");l.innerHTML='<input type="checkbox" data-i="'+i+'"> <span>'+t+'</span>';box.appendChild(l);});
   var cbs=function(){return box.querySelectorAll("input")};
@@ -238,7 +236,7 @@ input[type=file]{font:inherit;margin-top:4px}
   var photoData="";
 
   function state(){
-    return {group:g.value,names:$("names").value,
+    return {group:g.value,
       checks:[].map.call(cbs(),function(c){return c.checked}),photo:photoData};
   }
   function save(){
@@ -249,14 +247,13 @@ input[type=file]{font:inherit;margin-top:4px}
   function load(){
     var s=null;try{s=JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){}
     if(!s)return;
-    g.value=s.group||"";$("names").value=s.names||"";
+    g.value=s.group||"";
     (s.checks||[]).forEach(function(v,i){var c=cbs()[i];if(c)c.checked=!!v;});
     if(s.photo){photoData=s.photo;showPreview();}
   }
   function showPreview(){var p=$("preview");p.src=photoData;p.style.display=photoData?"block":"none";}
 
   g.addEventListener("change",save);
-  $("names").addEventListener("input",save);
   box.addEventListener("change",save);
 
   $("photo").addEventListener("change",function(e){
@@ -278,8 +275,7 @@ input[type=file]{font:inherit;margin-top:4px}
 
   function fill(){
     var s=state();
-    $("pGroup").textContent=s.group?("Group "+s.group+" – "+GROUPS[+s.group-1]):"(no group)";
-    $("pNames").textContent=s.names.trim()||"(blank)";
+    $("pGroup").textContent=s.group?("Group "+s.group):"(no group)";
     var sk=$("pSketch");sk.innerHTML="";
     if(s.photo){var im=document.createElement("img");im.src=s.photo;sk.appendChild(im);}
     else{var n=document.createElement("div");n.className="none";n.textContent="(no photo)";sk.appendChild(n);}
@@ -290,7 +286,7 @@ input[type=file]{font:inherit;margin-top:4px}
 
   $("printBtn").addEventListener("click",function(){
     var s=state(),miss=[];
-    if(!s.group)miss.push("group");if(!s.names.trim())miss.push("names");if(!s.photo)miss.push("photo");
+    if(!s.group)miss.push("group");if(!s.photo)miss.push("photo");
     $("msg").textContent=miss.length?("Still blank: "+miss.join(", ")+". Printing anyway…"):"";
     fill();
     setTimeout(function(){window.print();},miss.length?600:0);
@@ -300,12 +296,13 @@ input[type=file]{font:inherit;margin-top:4px}
     if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Click again to clear";
       setTimeout(function(){b.dataset.armed="";b.textContent="Clear my answers";},3000);return;}
     try{localStorage.removeItem(KEY);}catch(e){}
-    g.value="";$("names").value="";photoData="";$("photo").value="";$("photoErr").textContent="";
+    g.value="";photoData="";$("photo").value="";$("photoErr").textContent="";
     cbs().forEach(function(c){c.checked=false});showPreview();
     b.dataset.armed="";b.textContent="Clear my answers";
   });
 
   load();
+  save();
 })();
 </script>
 </body>
